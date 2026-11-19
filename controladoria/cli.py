@@ -7,6 +7,8 @@
 
 Decisões só pela interface web, autenticada como APROVADOR.
 """
+from __future__ import annotations
+
 import argparse
 import json
 

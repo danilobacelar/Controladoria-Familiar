@@ -1,4 +1,6 @@
 """Regras de negócio: importação de documento, fila de aprovação, decisões e painel."""
+from __future__ import annotations
+
 import hashlib
 import json
 import uuid

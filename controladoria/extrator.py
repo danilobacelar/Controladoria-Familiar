@@ -4,6 +4,8 @@ O extrator só lê. Ele devolve linhas com origem (página/linha) e confere o sa
 corrente linha a linha; se a conferência falhar, a importação inteira vai para
 QUARENTENA e nenhum lançamento é gravado (T13).
 """
+from __future__ import annotations
+
 import hashlib
 import json
 import re
@@ -90,10 +92,18 @@ class Extrato:
     alertas: list = field(default_factory=list)
 
 
+# Históricos conhecidos, usados quando o texto do PDF não preserva colunas (leitura sem pdftotext).
+RE_HISTORICO = re.compile(
+    r"^(D[ée]bito Pix|Cr[ée]dito Pix|Pagamento Pix|Pix Enviado|Pix Recebido|TED|Ted|DOC|Transfer[êe]ncia\S*"
+    r"|D[ée]b\.? Cart[ãa]o \S+|Fat\.? cart[ãa]o \S+|Tarifa\S*|Rendimento\S*)\s+(.*)$")
+
+
 def _separar(meio: str):
     partes = re.split(r"\s{2,}", meio.strip(), maxsplit=1)
     if len(partes) == 2:
         return partes[0].strip(), partes[1].strip()
+    if m := RE_HISTORICO.match(meio.strip()):
+        return m.group(1), m.group(2).strip()
     return partes[0].strip(), ""
 
 

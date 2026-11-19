@@ -217,3 +217,13 @@ def test_T17_painel_sem_saldo_validado_nao_apura_pl(con):
     assert p["patrimonio_liquido"] == "NAO_APURADO"
     assert p["contas_conjuntas_sem_validacao"] == 2
     assert p["referencias_dg08_pendentes"] == 2
+
+
+def test_leitura_pdf_sem_pdftotext(monkeypatch):
+    """Sem poppler (Mac sem Homebrew) o leitor usa pdfplumber e ainda separa histórico e contraparte."""
+    from controladoria import extrator
+    monkeypatch.setattr(extrator.shutil, "which", lambda _: None)
+    ex = extrator.ler_texto(extrator.texto_pdf(FIX / "extrato_ficticio.pdf"))
+    assert len(ex.linhas) == 8
+    assert ex.linhas[1].historico == "Pagamento Pix" and ex.linhas[1].contraparte == "ACADEMIA FICTICIA"
+    assert ex.saldo_anterior + sum(l.valor for l in ex.linhas) == ex.saldo_final

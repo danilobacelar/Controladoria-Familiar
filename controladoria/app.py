@@ -2,6 +2,8 @@
 
 Uso local, um computador. O APROVADOR entra com o PIN definido em CONTROLADORIA_PIN.
 """
+from __future__ import annotations
+
 import hmac
 import json
 import os
@@ -219,4 +221,4 @@ def auditoria():
 
 if __name__ == "__main__":
     BASE.mkdir(parents=True, exist_ok=True)
-    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", 5000)), debug=False)
+    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", 8765)), debug=False)

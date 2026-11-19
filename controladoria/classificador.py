@@ -3,6 +3,8 @@
 Tudo o que sai daqui é SUGESTÃO com confiança; a classificação só passa a valer
 depois de decisão do APROVADOR. Entradas desconhecidas nunca viram receita (RN-03).
 """
+from __future__ import annotations
+
 import unicodedata
 from dataclasses import dataclass
 

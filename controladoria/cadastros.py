@@ -7,6 +7,8 @@ Regras aplicadas na carga:
 - IF06: dívida Posto Agudos fica como referência histórica com quitação apenas relatada.
 A carga nunca sobrescreve registro existente (INSERT OR IGNORE) e é auditada.
 """
+from __future__ import annotations
+
 import csv
 from pathlib import Path
 
