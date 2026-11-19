@@ -43,6 +43,18 @@ SEGURANCA.md                     o que está protegido e o que falta (criptograf
 | Permissões | Senha própria por usuário; OPERADOR importa e vê só as próprias propostas; fila, lançamentos, cadastros e auditoria só para o APROVADOR. |
 | Simulação | Importações marcadas como simulação geram tarefas separadas; decisões nelas nunca produzem efeito. |
 
+## Python necessário
+- **Mínimo:** Python 3.10. **Recomendado:** Python 3.12 do [python.org](https://www.python.org/downloads/macos/).
+- O Python 3.9.6 das Command Line Tools da Apple não é suportado (versão sem suporte oficial e compilada com LibreSSL).
+
+### Instalar o Python 3.12 no Mac
+1. Acesse https://www.python.org/downloads/macos/ e baixe o **macOS 64-bit universal2 installer** da versão 3.12 mais recente.
+2. Abra o arquivo `.pkg` baixado e siga o instalador até o fim.
+3. Abra **Aplicativos → Python 3.12** e dê dois cliques em **Install Certificates.command**.
+4. Feche o Terminal e abra de novo. Confira com `python3.12 --version`.
+
+(Quem usa Homebrew pode instalar com `brew install python@3.12`.)
+
 ## Executar a demonstração no Mac (passo a passo, sem experiência prévia)
 
 A demonstração usa **somente dados fictícios** (pessoas "Ana", "Bruno" etc.). Nenhum documento real é necessário.
@@ -50,9 +62,9 @@ A demonstração usa **somente dados fictícios** (pessoas "Ana", "Bruno" etc.).
 1. **Baixar o código.** No GitHub, abra o repositório, escolha a branch `mvp-e01` (ou `main`, depois do merge), clique em **Code → Download ZIP**. Dê dois cliques no ZIP baixado para descompactar; ficará em Downloads uma pasta com nome parecido com `Controladoria-Familiar-mvp-e01`.
 2. **Abrir o Terminal.** Pressione `Command + Espaço`, digite `Terminal` e Enter.
 3. **Ir até a pasta.** Digite `cd ` (com espaço), arraste a pasta descompactada do Finder para a janela do Terminal e pressione Enter.
-4. **Iniciar.** Digite `bash iniciar_demo.sh` e Enter.
-   - Se aparecer um aviso pedindo para instalar as "ferramentas de linha de comando" (Command Line Tools), clique em **Instalar**, aguarde terminar e repita o passo 4. Isso instala o Python da Apple.
-   - Na primeira vez, a instalação das bibliotecas leva 1 a 2 minutos.
+4. **Iniciar.** Digite `bash iniciar_demo.sh` e Enter. O script verifica o Python antes de instalar qualquer coisa.
+   - Se ele disser que não encontrou Python 3.10 ou mais novo, instale o Python 3.12 (seção abaixo) e repita este passo. O Python 3.9 que vem com as ferramentas da Apple **não serve**.
+   - Na primeira vez, a instalação das bibliotecas leva 1 a 2 minutos. Se existir um ambiente antigo criado com Python 3.9, o script o recria sozinho.
 5. **Usar.** O navegador abre em `http://127.0.0.1:8765` (se não abrir, copie esse endereço no Safari). Entre com o usuário **danilo** e a senha **demo-aprovador** (aprovador) ou **operador** / **demo-operador** (operador). Essas senhas valem só para a demonstração.
 6. **Encerrar.** Volte ao Terminal e pressione `Control + C`.
 

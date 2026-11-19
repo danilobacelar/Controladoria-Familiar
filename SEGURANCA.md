@@ -5,7 +5,7 @@ Regra geral: **até os itens "Pendente — bloqueia dados reais" estarem resolvi
 ## O que já está implementado
 | Área | Implementado |
 |---|---|
-| Autenticação | Senha própria por usuário (APROVADOR e OPERADOR), guardada só como hash (Werkzeug/scrypt ou PBKDF2). Usuário sem senha não entra. Mensagem genérica de erro. Bloqueio de 15 min após 5 tentativas erradas. Login, falhas e bloqueios auditados. AGENTE e ADMIN_TECNICO não recebem senha nem entram na interface. |
+| Autenticação | Senha própria por usuário (APROVADOR e OPERADOR), guardada só como hash PBKDF2-HMAC-SHA256 com 1.000.000 de iterações e sal aleatório (acima da recomendação OWASP de 600.000; escolhido no lugar de scrypt por funcionar em qualquer Python do Mac e manter o banco verificável em outro computador). Usuário sem senha não entra. Mensagem genérica de erro. Bloqueio de 15 min após 5 tentativas erradas. Login, falhas e bloqueios auditados. AGENTE e ADMIN_TECNICO não recebem senha nem entram na interface. |
 | Permissões | Matriz por tela (`PERMISSOES` em `app.py`): OPERADOR vê painel resumido, importa e vê só as próprias propostas; fila, lançamentos, cadastros, auditoria e qualquer decisão são exclusivos do APROVADOR. O serviço de decisão revalida o papel (defesa em profundidade). |
 | Sessão | Cookie `HttpOnly` e `SameSite=Strict`; expira após 30 min sem uso; sessão nova a cada login; chave de sessão aleatória a cada início do servidor; saída por POST. |
 | Formulários | Token CSRF em todo POST. |

@@ -123,3 +123,37 @@ def test_migracao_de_banco_antigo(tmp_path):
     assert {"senha_hash", "falhas_login", "bloqueado_ate"} <= cols
     with pytest.raises(FalhaAutenticacao):
         autenticar(c, "danilo", "")
+
+
+# ------------------------------------------------------------ compatibilidade do hash de senha (macOS)
+
+def test_hash_pbkdf2_sha256_com_um_milhao_de_iteracoes(con):
+    definir_senha(con, "danilo", "senha-aprovador-1")
+    h = con.execute("SELECT senha_hash FROM usuarios WHERE id='danilo'").fetchone()[0]
+    metodo, sal, digest = h.split("$")
+    assert metodo == "pbkdf2:sha256:1000000" and len(sal) >= 16 and len(digest) == 64
+
+
+def test_funciona_sem_hashlib_scrypt(con, monkeypatch):
+    """Python da Apple (LibreSSL) não tem hashlib.scrypt: definir e verificar senha precisam funcionar."""
+    import hashlib
+    monkeypatch.delattr(hashlib, "scrypt", raising=False)
+    definir_senha(con, "danilo", "senha-aprovador-1")
+    assert autenticar(con, "danilo", "senha-aprovador-1")["papel"] == "APROVADOR"
+    with pytest.raises(FalhaAutenticacao):
+        autenticar(con, "danilo", "senha-errada-1")
+
+
+def test_hash_antigo_com_algoritmo_indisponivel_falha_com_orientacao(con, monkeypatch):
+    import hashlib
+    monkeypatch.delattr(hashlib, "scrypt", raising=False)
+    con.execute("UPDATE usuarios SET senha_hash='scrypt:32768:8:1$abc$def' WHERE id='danilo'")
+    con.commit()
+    with pytest.raises(FalhaAutenticacao, match="redefina"):
+        autenticar(con, "danilo", "qualquer")
+
+
+def test_verificacao_de_ambiente():
+    from controladoria.verificar_ambiente import verificar
+    assert verificar(completo=True) == []
+    assert any("mínimo 3.10" in e for e in verificar(versao=(3, 9, 6)))
