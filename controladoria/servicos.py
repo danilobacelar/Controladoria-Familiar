@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import uuid
+from datetime import date
 from pathlib import Path
 
 from .classificador import Contexto, normalizar, sugerir
@@ -167,6 +168,8 @@ def decidir(con, tarefa_id, ator_id, decisao, motivo, dados=None):
 
 def _decidir(con, tarefa_id, ator_id, decisao, motivo, dados=None):
     _exigir_aprovador(con, ator_id)
+    if decisao not in ("APROVAR", "REJEITAR", "CONTESTAR"):
+        raise Recusado("decisão deve ser APROVAR, REJEITAR ou CONTESTAR")
     if not motivo or not motivo.strip():
         raise Recusado("motivo é obrigatório")
     t = linha(con, "SELECT * FROM tarefas_aprovacao WHERE id=?", tarefa_id)
@@ -207,7 +210,21 @@ def _aplicar(con, t, ator_id, motivo, dados, decisao_id):
         inicio = dados.get("vigencia_inicio")
         if not aloc or not inicio:
             raise Recusado("IF09 exige alocações por pessoa e data de início de vigência")
-        if round(sum(float(a["percentual"]) for a in aloc), 6) != 100:
+        _validar_data(inicio, "data de início da vigência")
+        if dados.get("vigencia_fim"):
+            _validar_data(dados["vigencia_fim"], "data de fim da vigência")
+        aloc = [{"pessoa_id": str(a["pessoa_id"]).strip().upper(), "percentual": float(a["percentual"])}
+                for a in aloc]
+        ids = [a["pessoa_id"] for a in aloc]
+        if len(set(ids)) != len(ids):
+            raise Recusado("IF09: a mesma pessoa aparece mais de uma vez nas alocações")
+        desconhecidas = [i for i in ids if not linha(con, "SELECT 1 FROM pessoas_entidades WHERE id=?", i)]
+        if desconhecidas:
+            raise Recusado(f"IF09: pessoa não cadastrada: {', '.join(desconhecidas)}. "
+                           f"Use os códigos do cadastro ({titulares_sugeridos(con, alvo)})")
+        if any(not 0 <= a["percentual"] <= 100 for a in aloc):
+            raise Recusado("IF09: cada percentual deve estar entre 0 e 100")
+        if round(sum(a["percentual"] for a in aloc), 6) != 100:
             raise Recusado("IF09: a soma dos percentuais deve ser 100")
         antes = linha(con, "SELECT titularidade_economica_status FROM instrumentos WHERE id=?", alvo)
         for a in aloc:
@@ -245,6 +262,24 @@ def _aplicar(con, t, ator_id, motivo, dados, decisao_id):
         auditar(con, ator_id, "VINCULO_INSTRUMENTO", "propostas", alvo, None, {"instrumento_id": inst}, motivo)
     else:
         auditar(con, ator_id, "APROVAR", t["alvo_tabela"], alvo, None, dados, motivo)
+
+
+def _validar_data(valor, nome):
+    try:
+        date.fromisoformat(valor)
+    except (TypeError, ValueError):
+        raise Recusado(f"{nome} inválida: use o formato AAAA-MM-DD") from None
+
+
+def titulares_sugeridos(con, instrumento_id):
+    """Titulares relatados da conta com seus códigos de cadastro, ex.: 'P001 Ana, P002 Bruno'."""
+    inst = linha(con, "SELECT titularidade_legal_relato FROM instrumentos WHERE id=?", instrumento_id)
+    nomes = [n.strip() for n in ((inst and inst["titularidade_legal_relato"]) or "").split(";") if n.strip()]
+    partes = []
+    for n in nomes:
+        p = linha(con, "SELECT id FROM pessoas_entidades WHERE lower(nome)=lower(?)", n)
+        partes.append(f"{p['id']} {n}" if p else n)
+    return ", ".join(partes) or "consulte Cadastros"
 
 
 def aprovar_lote(con, tarefa_ids, ator_id, motivo):

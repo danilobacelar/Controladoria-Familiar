@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hmac
 import json
+import logging
 import os
 import secrets
 import tempfile
@@ -126,7 +127,27 @@ def _ctx():
 
 @app.errorhandler(403)
 def _proibido(_):
-    return render_template("erro.html", msg="Seu papel não tem acesso a esta tela."), 403
+    return render_template("erro.html", titulo="Acesso negado", msg="Seu papel não tem acesso a esta tela."), 403
+
+
+@app.errorhandler(500)
+def _falha(_):
+    return render_template("erro.html", titulo="Erro inesperado",
+                           msg="A operação foi interrompida e nada foi gravado. Volte à tela anterior e tente de novo; "
+                               "se repetir, anote o que foi digitado e informe."), 500
+
+
+ERRO_INESPERADO = "erro inesperado; nada foi gravado. Confira os dados digitados e tente de novo."
+
+
+def _falha_inesperada(contexto):
+    """Qualquer erro não previsto vira mensagem na tela, com desfazimento, em vez de derrubar a página."""
+    logging.getLogger(__name__).exception("falha em %s", contexto)
+    con().rollback()
+
+
+def _percentual(txt):
+    return float(txt.strip().rstrip("%").strip().replace(",", "."))
 
 
 @app.route("/entrar", methods=["GET", "POST"])
@@ -135,7 +156,7 @@ def entrar():
         try:
             u = autenticar(con(), request.form.get("uid", ""), request.form.get("senha", ""))
         except FalhaAutenticacao as e:
-            flash(str(e).capitalize() + ".")
+            flash(str(e).capitalize() + ".", "erro")
         else:
             session.clear()                     # nova sessão a cada login
             session["uid"] = u["id"]
@@ -165,7 +186,7 @@ def importar():
     if request.method == "POST":
         arq = request.files.get("arquivo")
         if not arq or not arq.filename.lower().endswith(".pdf"):
-            flash("Envie um PDF de extrato.")
+            flash("Envie um PDF de extrato.", "erro")
             return redirect(url_for("importar"))
         with tempfile.TemporaryDirectory() as tmp:
             caminho = Path(tmp) / "doc.pdf"
@@ -176,12 +197,12 @@ def importar():
                                               instrumento_id=request.form.get("instrumento_id") or None,
                                               simulacao=bool(request.form.get("simulacao")))
             except Recusado as e:
-                flash(f"Bloqueado: {e}")
+                flash(f"Bloqueado: {e}", "erro")
                 return redirect(url_for("importar"))
         if r["estado"] == "QUARENTENA":
-            flash(f"Lote em QUARENTENA, nada foi lançado: {r['erro']}")
+            flash(f"Lote em QUARENTENA, nada foi lançado: {r['erro']}", "erro")
             return redirect(url_for("importar"))
-        flash(f"Proposta criada com {r['linhas']} linhas ({r['duplicadas']} duplicadas ignoradas).")
+        flash(f"Proposta criada com {r['linhas']} linhas ({r['duplicadas']} duplicadas ignoradas).", "ok")
         return redirect(url_for("proposta", pid=r["proposta_id"]))
     return render_template("importar.html", instrumentos=instrumentos)
 
@@ -209,41 +230,58 @@ def fila():
         " l.classe_sugerida, l.confianca FROM tarefas_aprovacao t LEFT JOIN lancamentos l"
         " ON t.alvo_tabela='lancamentos' AND l.id=t.alvo_id WHERE t.estado='ABERTA' AND t.simulacao=?"
         " ORDER BY t.exige_individual DESC, t.id", (int(sim),))]
-    return render_template("fila.html", tarefas=tarefas, sim=sim)
+    for t in tarefas:
+        if t["tipo"] == "IF09_ATRIBUICAO_ECONOMICA":
+            t["titulares"] = servicos.titulares_sugeridos(con(), t["alvo_id"])
+            codigos = [x.split()[0] for x in t["titulares"].split(", ") if len(x.split()) > 1]
+            t["exemplo"] = ";".join(f"{c}={100 if i == 0 else 0}" for i, c in enumerate(codigos))
+    lote = [t for t in tarefas if t["elegivel_lote"] and not t["exige_individual"]]
+    return render_template("fila.html", tarefas=tarefas, lote=lote, sim=sim)
 
 
 @app.post("/fila/<int:tid>")
 @acesso
 def decidir(tid):
     f = request.form
+    volta = redirect(url_for("fila", simulacao=f.get("simulacao") or None))
     dados = {}
     for k in ("evento", "classe", "instrumento_id", "vigencia_inicio", "vigencia_fim"):
         if f.get(k):
             dados[k] = f[k].strip()
     if f.get("alocacoes"):
         try:
-            dados["alocacoes"] = [{"pessoa_id": p.split("=")[0].strip(), "percentual": float(p.split("=")[1])}
+            dados["alocacoes"] = [{"pessoa_id": p.split("=")[0].strip().upper(), "percentual": _percentual(p.split("=")[1])}
                                   for p in f["alocacoes"].split(";") if p.strip()]
         except (IndexError, ValueError):
-            flash("Alocações no formato P001=100;P002=0")
-            return redirect(url_for("fila"))
+            flash(f"Tarefa {tid} bloqueada: alocações devem seguir o formato P001=100;P002=0", "erro")
+            return volta
     try:
         servicos.decidir(con(), tid, usuario()["id"], f.get("decisao"), f.get("motivo", ""), dados)
-        flash(f"Tarefa {tid}: decisão registrada.")
+        flash(f"Tarefa {tid}: decisão registrada ({f.get('decisao')}).", "ok")
     except Recusado as e:
-        flash(f"Tarefa {tid} bloqueada: {e}")
-    return redirect(url_for("fila", simulacao=f.get("simulacao") or None))
+        flash(f"Tarefa {tid} bloqueada, nada foi registrado e ela continua pendente: {e}", "erro")
+    except Exception:  # noqa: BLE001
+        _falha_inesperada(f"decidir {tid}")
+        flash(f"Tarefa {tid}: {ERRO_INESPERADO}", "erro")
+    return volta
 
 
 @app.post("/fila/lote")
 @acesso
 def lote():
-    ids = [int(i) for i in request.form.getlist("ids")]
     try:
+        ids = [int(i) for i in request.form.getlist("ids")]
+        if not ids:
+            raise Recusado("nenhuma tarefa marcada")
         servicos.aprovar_lote(con(), ids, usuario()["id"], request.form.get("motivo", ""))
-        flash(f"{len(ids)} tarefas aprovadas em lote.")
+        flash(f"{len(ids)} tarefas aprovadas em lote.", "ok")
     except Recusado as e:
-        flash(f"Lote bloqueado: {e}")
+        flash(f"Lote bloqueado, nada aprovado: {e}", "erro")
+    except ValueError:
+        flash("Lote bloqueado: seleção inválida.", "erro")
+    except Exception:  # noqa: BLE001
+        _falha_inesperada("lote")
+        flash(f"Lote: {ERRO_INESPERADO}", "erro")
     return redirect(url_for("fila"))
 
 
@@ -252,9 +290,12 @@ def lote():
 def reabrir(lid):
     try:
         servicos.reabrir_lancamento(con(), lid, usuario()["id"], request.form.get("motivo", ""))
-        flash("Lançamento reaberto; nova tarefa criada.")
+        flash("Lançamento reaberto; nova tarefa criada na fila.", "ok")
     except Recusado as e:
-        flash(f"Bloqueado: {e}")
+        flash(f"Bloqueado: {e}", "erro")
+    except Exception:  # noqa: BLE001
+        _falha_inesperada("reabrir")
+        flash(f"Reabertura: {ERRO_INESPERADO}", "erro")
     return redirect(url_for("lancamentos"))
 
 

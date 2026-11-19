@@ -16,7 +16,10 @@ th{color:var(--sub);font-weight:500}td.v{text-align:right;font-variant-numeric:t
 .tag.al{background:#3a2e14;color:var(--alerta)}.tag.ok{background:#12302a;color:var(--ok)}.tag.er{background:#3a1816;color:var(--erro)}
 input,select,textarea,button{background:#0f1115;color:var(--txt);border:1px solid var(--linha);border-radius:6px;padding:6px 8px;font:inherit}
 button{background:var(--ac);color:#111;border:0;cursor:pointer;font-weight:600}button.sec{background:#262b36;color:var(--txt)}
-.flash{background:#262b36;border-left:3px solid var(--ac);padding:8px 12px;margin-bottom:12px;border-radius:4px}
+.flash{background:#262b36;border-left:4px solid var(--ac);padding:10px 14px;margin-bottom:12px;border-radius:4px;font-weight:500}
+.flash.erro{background:#3a1816;border-left-color:var(--erro);color:#ffd9d6}.flash.erro::before{content:"⛔ ";}
+.flash.ok{background:#12302a;border-left-color:var(--ok)}.flash.ok::before{content:"✓ ";}
+h3{margin:4px 0 8px}.secao{margin:22px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--linha)}
 pre{white-space:pre-wrap;font-size:12px;color:var(--sub)}form.inline{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .neg{color:var(--erro)}.pos{color:var(--ok)}
 </style></head><body>
@@ -28,5 +31,5 @@ pre{white-space:pre-wrap;font-size:12px;color:var(--sub)}form.inline{display:fle
 {% if pode('auditoria') %}<a href="{{ url_for('auditoria') }}">Auditoria</a>{% endif %}
 <span class="sub" style="margin-left:auto">{{ u.nome }} · {{ u.papel }}</span>
 <form method="post" action="{{ url_for('sair') }}" style="display:inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="sec">Sair</button></form>{% endif %}</header>
-<main>{% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}{% block corpo %}{% endblock %}</main>
+<main>{% for cat, m in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}" role="alert">{{ m }}</div>{% endfor %}{% block corpo %}{% endblock %}</main>
 </body></html>

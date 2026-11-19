@@ -18,7 +18,7 @@ controladoria/
   autenticacao.py                senha por usuário (hash), bloqueio por tentativas, auditoria de login
   proposta_extracao.schema.json  contrato da proposta
   templates/                     telas
-tests/                           45 testes automáticos, só com dados fictícios
+tests/                           63 testes automáticos, só com dados fictícios
   fixtures/cadastros/            cadastros fictícios
   fixtures/extrato_ficticio.pdf  extrato fictício para o teste de inclusão
 docs/esquema_minimo_referencia.sql
@@ -68,7 +68,7 @@ A demonstração usa **somente dados fictícios** (pessoas "Ana", "Bruno" etc.).
 5. **Usar.** O navegador abre em `http://127.0.0.1:8765` (se não abrir, copie esse endereço no Safari). Entre com o usuário **danilo** e a senha **demo-aprovador** (aprovador) ou **operador** / **demo-operador** (operador). Essas senhas valem só para a demonstração.
 6. **Encerrar.** Volte ao Terminal e pressione `Control + C`.
 
-Para recomeçar a demonstração do zero, apague a pasta `dados/demo` dentro da pasta do projeto.
+Para recomeçar a demonstração do zero, apague a pasta `dados/demo` dentro da pasta do projeto (no Terminal, dentro da pasta: `rm -rf dados/demo`). Faça isso antes de repetir o roteiro, porque tarefas já decididas não voltam para a fila.
 
 ### Roteiro de teste na interface
 1. **Painel:** confirme "Patrimônio líquido: Não apurado", 2 contas conjuntas sem validação e 2 referências DG08 pendentes.
@@ -76,7 +76,16 @@ Para recomeçar a demonstração do zero, apague a pasta `dados/demo` dentro da 
 3. **Importar:** escolha `tests/fixtures/extrato_ficticio.pdf`, instrumento `A001` e clique em *Gerar proposta*. A proposta mostra 8 linhas e o JSON no contrato.
 4. **Importar o mesmo arquivo de novo:** o sistema bloqueia a duplicidade.
 5. **Operador:** saia, entre como `operador` e confirme que Fila, Lançamentos, Cadastros e Auditoria não aparecem e retornam "Acesso negado" se digitados; depois volte a entrar como `danilo`.
-6. **Fila de aprovação:** aprove o pagamento de fatura (efeito NENHUM), tente aprovar uma entrada desconhecida sem informar evento/classe (bloqueado), tente aprovar uma saída com evento `QUALQUER_COISA` (bloqueado, não vira neutro), tente aprovar DG08 em lote (bloqueado), aprove uma tarefa IF09 com `P001=100;P002=0` e data de vigência.
+6. **Fila de aprovação.** A tela tem duas seções:
+   - **1. Aprovação em lote:** só pagamento de fatura e confirmação de categoria, com tipo, data e valor de cada item.
+   - **2. Decisões individuais:** IF09, DG08, entradas e saídas desconhecidas, família e empresas relacionadas. Cada uma é decidida no próprio cartão.
+
+   Teste nesta ordem:
+   - Aprove o **pagamento de fatura** (na seção 1 ou no cartão dele). Depois, em *Lançamentos*, a coluna **Efeito econômico** deve mostrar `NENHUM (sem receita/despesa)`. A coluna **Situação da aprovação** mostra `APROVADO`, porque são informações diferentes.
+   - Na **entrada desconhecida** (`CLASSIFICAR_ENTRADA`), deixe evento e classe em branco e clique em *Registrar*. Deve aparecer uma faixa vermelha "bloqueada, nada foi registrado e ela continua pendente", e a tarefa continua na fila. Isso é o bloqueio funcionando.
+   - Numa saída, informe o evento `QUALQUER_COISA`: bloqueado, não vira neutro.
+   - Confirme que **nenhum DG08 aparece na seção 1**.
+   - No cartão **IF09** da conta A001, use os códigos que o próprio cartão mostra (`P001=100;P002=0`, pelos códigos e não pelos nomes) e escolha a data. Erros de digitação aparecem como faixa vermelha, sem gravar nada.
 7. **Lançamentos:** reabra um lançamento aprovado informando motivo.
 8. **Auditoria:** confira antes/depois/ator/motivo de cada ação.
 

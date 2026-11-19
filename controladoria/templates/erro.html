@@ -1,1 +1,2 @@
-{% extends "base.html" %}{% block corpo %}<div class="cartao"><h2>Acesso negado</h2><p>{{ msg }}</p></div>{% endblock %}
+{% extends "base.html" %}{% block corpo %}<div class="cartao"><h2>{{ titulo or 'Acesso negado' }}</h2><p>{{ msg }}</p>
+<p><a href="{{ url_for('painel') }}" style="color:var(--ac)">Voltar ao painel</a></p></div>{% endblock %}
