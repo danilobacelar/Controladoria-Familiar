@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block corpo %}<div class="cartao"><h2>Auditoria (somente inclusão)</h2><table>
+<tr><th>#</th><th>Quando</th><th>Ator</th><th>Ação</th><th>Registro</th><th>Antes</th><th>Depois</th><th>Motivo</th></tr>
+{% for r in rows %}<tr><td>{{ r.id }}</td><td>{{ r.em }}</td><td>{{ r.ator_id }}</td><td>{{ r.acao }}</td><td>{{ r.tabela }}/{{ r.registro_id }}</td>
+<td><pre>{{ r.antes or '' }}</pre></td><td><pre>{{ r.depois or '' }}</pre></td><td>{{ r.motivo or '' }}</td></tr>{% endfor %}</table></div>{% endblock %}

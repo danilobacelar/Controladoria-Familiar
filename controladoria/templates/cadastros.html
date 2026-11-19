@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block corpo %}
+<div class="cartao"><h3>Instrumentos</h3><table><tr><th>ID</th><th>Instituição</th><th>Tipo</th><th>Titulares (relato)</th><th>Conjunta</th><th>Titularidade econômica</th></tr>
+{% for i in instrumentos %}<tr><td>{{ i.id }}</td><td>{{ i.instituicao }}</td><td>{{ i.tipo }}</td><td>{{ i.titularidade_legal_relato if ver_restrito else 'restrito' }}</td><td>{{ i.conjunta }}</td>
+<td><span class="tag {{ 'ok' if i.titularidade_economica_status.startswith('VALIDADA') else 'al' }}">{{ i.titularidade_economica_status }}</span></td></tr>{% endfor %}</table>
+{% if vigencias %}<h4>Vigências validadas (IF09)</h4><table><tr><th>Instrumento</th><th>Pessoa</th><th class="v">%</th><th>Início</th><th>Fim</th><th>Decisão</th></tr>
+{% for v in vigencias %}<tr><td>{{ v.instrumento_id }}</td><td>{{ v.pessoa_id }}</td><td class="v">{{ v.percentual }}</td><td>{{ v.vigencia_inicio }}</td><td>{{ v.vigencia_fim or '—' }}</td><td>#{{ v.decisao_id }}</td></tr>{% endfor %}</table>{% endif %}</div>
+<div class="cartao"><h3>Posições (abertura histórica IRPF)</h3><table><tr><th>ID</th><th>Instituição</th><th>Produto</th><th>Data-base</th><th class="v">Valor fiscal</th><th>Alerta</th></tr>
+{% for p in posicoes %}<tr><td>{{ p.id }}</td><td>{{ p.instituicao }}</td><td>{{ p.produto }}</td><td>{{ p.data_base }}</td><td class="v">{{ '{:,.2f}'.format(p.valor or 0) }}</td><td><span class="tag al">{{ p.alerta_atualizacao or '' }}</span></td></tr>{% endfor %}</table></div>
+<div class="cartao"><h3>Bens (valores fiscais históricos)</h3><table><tr><th>ID</th><th>Classe</th><th>Descrição</th><th>Matrícula</th><th class="v">Valor fiscal</th><th>Situação</th></tr>
+{% for a in ativos %}<tr><td>{{ a.id }}</td><td>{{ a.classe }}</td><td>{{ a.descricao }}</td><td>{{ a.matricula or '' }}</td><td class="v">{{ '{:,.2f}'.format(a.valor_fiscal_declarado or 0) }}</td><td class="sub">{{ a.status_relato }}</td></tr>{% endfor %}</table></div>
+{% if ver_restrito %}<div class="cartao"><h3>Referências declaratórias e dívidas históricas</h3><table><tr><th>ID</th><th>Natureza</th><th>Contraparte</th><th class="v">Valor</th><th>Estado</th></tr>
+{% for r in referencias %}<tr><td>{{ r.id }}</td><td>{{ r.natureza }}</td><td>{{ r.contraparte }}</td><td class="v">{{ '{:,.2f}'.format(r.valor_declarado or 0) }}</td><td><span class="tag al">{{ r.estado }}</span></td></tr>{% endfor %}</table></div>
+<div class="cartao"><h3>Pessoas e entidades</h3><table><tr><th>ID</th><th>Tipo</th><th>Nome</th><th>Papel</th></tr>
+{% for p in pessoas %}<tr><td>{{ p.id }}</td><td>{{ p.tipo }}</td><td>{{ p.nome }}</td><td>{{ p.papel }}</td></tr>{% endfor %}</table></div>{% endif %}
+{% endblock %}

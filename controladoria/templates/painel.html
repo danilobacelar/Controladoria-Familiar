@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block corpo %}
+<div class="grade">
+<div class="cartao"><div class="sub">Patrimônio líquido</div><div class="num">{{ 'Não apurado' if p.patrimonio_liquido=='NAO_APURADO' else p.patrimonio_liquido }}</div><div class="sub">{{ p.motivo_pl }}</div></div>
+<div class="cartao"><div class="sub">Tarefas reais abertas</div><div class="num">{{ p.tarefas_abertas_reais }}</div><a class="sub" href="{{ url_for('fila') }}">abrir fila</a></div>
+<div class="cartao"><div class="sub">Contas conjuntas sem validação (IF09)</div><div class="num">{{ p.contas_conjuntas_sem_validacao }}</div></div>
+<div class="cartao"><div class="sub">Referências DG08 pendentes</div><div class="num">{{ p.referencias_dg08_pendentes }}</div></div>
+<div class="cartao"><div class="sub">Lotes em quarentena</div><div class="num">{{ p.lotes_quarentena }}</div></div>
+<div class="cartao"><div class="sub">Tarefas de simulação</div><div class="num">{{ p.tarefas_abertas_simulacao }}</div><div class="sub">sem efeito</div></div>
+</div>
+<div class="cartao"><h3>Dívidas históricas</h3><table><tr><th>Ref.</th><th>Contraparte</th><th class="v">Valor IRPF</th><th>Estado</th></tr>
+{% for d in p.dividas_historicas %}<tr><td>{{ d.id }}</td><td>{{ d.contraparte }}</td><td class="v">{{ '{:,.2f}'.format(d.valor_declarado or 0) }}</td><td><span class="tag al">{{ d.estado }}</span></td></tr>{% endfor %}
+</table></div>{% endblock %}

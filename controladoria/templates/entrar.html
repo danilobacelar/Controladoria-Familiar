@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block corpo %}<div class="cartao" style="max-width:380px;margin:60px auto">
+<h2>Entrar</h2><form method="post" style="display:grid;gap:10px">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<input name="uid" placeholder="usuário" autocomplete="username" required>
+<input name="senha" type="password" placeholder="senha" autocomplete="current-password" required><button>Entrar</button></form>
+<p class="sub">Cada pessoa entra com a própria senha. Após 5 tentativas erradas o acesso fica bloqueado por 15 minutos.</p></div>{% endblock %}

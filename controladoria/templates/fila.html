@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% block corpo %}
+<h2>{{ 'Simulações (sem efeito)' if sim else 'Fila de aprovação' }}</h2>
+{% set individuais = tarefas|rejectattr('id', 'in', lote|map(attribute='id')|list)|list %}
+
+{% if lote and u.papel=='APROVADOR' %}
+<h3 class="secao">1. Aprovação em lote ({{ lote|length }})</h3>
+<div class="cartao"><form method="post" action="{{ url_for('lote') }}"><input type="hidden" name="csrf" value="{{ csrf }}">
+<p class="sub">Só entram aqui pagamentos de fatura e confirmações de categoria de despesa. <b>DG08, IF09, empresas relacionadas, movimentos de família e entradas desconhecidas nunca entram em lote</b> e ficam na seção 2.</p>
+<table><tr><th></th><th>#</th><th>Tipo</th><th>Data</th><th>Histórico</th><th class="v">Valor</th><th>Sugestão</th></tr>
+{% for t in lote %}<tr><td><input type="checkbox" name="ids" value="{{ t.id }}" checked></td><td>{{ t.id }}</td><td>{{ t.tipo }}</td><td>{{ t.data }}</td><td>{{ t.historico }}</td>
+<td class="v {{ 'neg' if t.valor<0 else 'pos' }}">{{ '{:,.2f}'.format(t.valor) }}</td><td>{{ t.evento_sugerido or t.classe_sugerida or '—' }}</td></tr>{% endfor %}</table>
+<div class="inline" style="display:flex;gap:6px;margin-top:8px"><input name="motivo" placeholder="motivo (obrigatório)" required style="min-width:240px"><button>Aprovar as marcadas</button></div></form></div>
+{% endif %}
+
+<h3 class="secao">{{ '2. ' if lote and u.papel=='APROVADOR' else '' }}Decisões individuais ({{ individuais|length }})</h3>
+{% for t in individuais %}<div class="cartao">
+<div><b>#{{ t.id }} {{ t.tipo }}</b> {% if t.exige_individual %}<span class="tag er">decisão individual</span>{% endif %}
+{% if t.simulacao %}<span class="tag al">simulação</span>{% endif %}</div>
+{% if t.data %}<div class="sub">{{ t.linha_origem }} · {{ t.data }} · {{ t.historico }} · {{ t.contraparte }} · <span class="{{ 'neg' if t.valor<0 else 'pos' }}">{{ '{:,.2f}'.format(t.valor) }}</span></div>{% endif %}
+<p>{{ t.justificativa }}</p>
+{% if t.alvo_tabela=='lancamentos' and not t.evento_sugerido and not t.classe_sugerida %}<p class="sub" style="color:var(--alerta)">Para APROVAR é preciso informar um evento (ex.: TRANSFERENCIA_INTERNA) ou uma classe do catálogo (ex.: 01.01). Sem isso a aprovação é bloqueada e a tarefa continua pendente.</p>{% endif %}
+{% if t.tipo=='IF09_ATRIBUICAO_ECONOMICA' %}<p class="sub" style="color:var(--alerta)">Titulares relatados: {{ t.titulares }}. Informe percentuais por código de pessoa (não pelo nome), somando 100, e a data de início{% if t.exemplo %}, ex.: {{ t.exemplo }}{% endif %}.</p>{% endif %}
+{% if u.papel=='APROVADOR' %}<form method="post" action="{{ url_for('decidir', tid=t.id) }}" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
+<select name="decisao"><option>APROVAR</option><option>REJEITAR</option><option>CONTESTAR</option></select>
+{% if t.alvo_tabela=='lancamentos' %}<input name="evento" placeholder="evento ({{ t.evento_sugerido or '—' }})"><input name="classe" placeholder="classe ({{ t.classe_sugerida or '—' }})">{% endif %}
+{% if t.tipo=='IF09_ATRIBUICAO_ECONOMICA' %}<input name="alocacoes" placeholder="{{ t.exemplo or 'P001=100;P002=0' }}" required><input name="vigencia_inicio" type="date" required title="AAAA-MM-DD">{% endif %}
+{% if t.tipo=='VINCULAR_INSTRUMENTO' %}<input name="instrumento_id" placeholder="A001">{% endif %}
+{% if sim %}<input type="hidden" name="simulacao" value="1">{% endif %}<input name="motivo" placeholder="motivo (obrigatório)" required style="min-width:240px"><button>Registrar</button></form>
+{% else %}<p class="sub">Somente o aprovador decide.</p>{% endif %}</div>{% else %}<p class="sub">Nenhuma tarefa individual aberta.</p>{% endfor %}
+{% endblock %}

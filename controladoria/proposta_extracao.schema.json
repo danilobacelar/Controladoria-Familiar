@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposta de Extração E01 R01",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposta_id",
+    "documento",
+    "data_base",
+    "status",
+    "campos",
+    "efeitos_economicos",
+    "tarefas_aprovacao"
+  ],
+  "properties": {
+    "proposta_id": {
+      "type": "string"
+    },
+    "documento": {
+      "type": "object",
+      "required": [
+        "nome_seguro",
+        "tipo",
+        "fonte",
+        "hash_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "nome_seguro": {
+          "type": "string"
+        },
+        "tipo": {
+          "type": "string"
+        },
+        "fonte": {
+          "type": "string"
+        },
+        "hash_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "data_base": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "status": {
+      "const": "PROPOSTA_NAO_GRAVADA"
+    },
+    "campos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "nome",
+          "valor",
+          "unidade",
+          "evidencia",
+          "nivel_evidencia",
+          "confianca"
+        ],
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "valor": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          "unidade": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidencia": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nivel_evidencia": {
+            "enum": [
+              "DOCUMENTADO_IRPF_2025",
+              "DOCUMENTADO_EXTRATO",
+              "RELATADO_TITULAR",
+              "SIMULACAO",
+              "PENDENTE",
+              "DIVERGENTE"
+            ]
+          },
+          "confianca": {
+            "enum": [
+              "ALTA",
+              "MEDIA",
+              "BAIXA",
+              "INDETERMINADA"
+            ]
+          }
+        }
+      }
+    },
+    "efeitos_economicos": {
+      "type": "object",
+      "required": [
+        "gera_caixa",
+        "gera_ativo",
+        "gera_passivo",
+        "nota"
+      ],
+      "properties": {
+        "gera_caixa": {
+          "type": "boolean"
+        },
+        "gera_ativo": {
+          "type": "boolean"
+        },
+        "gera_passivo": {
+          "type": "boolean"
+        },
+        "nota": {
+          "type": "string"
+        }
+      }
+    },
+    "tarefas_aprovacao": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "tipo",
+          "responsavel",
+          "justificativa"
+        ],
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "responsavel": {
+            "type": "string"
+          },
+          "justificativa": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "alertas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

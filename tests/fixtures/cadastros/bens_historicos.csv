@@ -1,0 +1,2 @@
+ativo_id,tipo,descricao,matricula,valor_fiscal_declarado_brl,data_base,origem,observacoes
+IM001,imovel,Casa Ficticia,1.111,200000.00,2025-12-31,DOCUMENTADO_IRPF_2025,uma matricula
