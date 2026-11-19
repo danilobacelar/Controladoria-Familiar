@@ -1,0 +1,3 @@
+id_posicao,instituicao,produto,valor_fiscal_brl,origem,observacoes,data_base,saldo_atual_validado
+F001,Banco Alfa,corrente,1000.00,DOCUMENTADO_IRPF_2025,,2025-12-31,NAO
+F002,Banco Beta,corrente,5000.00,DOCUMENTADO_IRPF_2025,,2025-12-31,NAO

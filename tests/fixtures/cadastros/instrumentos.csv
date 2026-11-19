@@ -1,0 +1,4 @@
+instrumento_id,instituicao,tipo,titulares_relatados,validacao_economica,conjunta,origem,observacoes
+A001,Banco Alfa,conta corrente,Ana;Bruno,PENDENTE_VALIDACAO_DANILO,sim,SIMULACAO,
+A002,Banco Beta,conta corrente,Ana;Edu,PENDENTE_VALIDACAO_DANILO,sim,SIMULACAO,recursos de Ana segundo relato
+A003,Banco Gama,investimentos,Ana,PENDENTE_CONFERENCIA,nao,SIMULACAO,

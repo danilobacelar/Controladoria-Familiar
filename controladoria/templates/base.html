@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block titulo %}Controladoria Familiar{% endblock %}</title>
+<style>
+:root{--bg:#0f1115;--painel:#171a21;--linha:#262b36;--txt:#e6e8ec;--sub:#9aa3b2;--ac:#c9a227;--ok:#3fb68b;--alerta:#e0a33a;--erro:#e5534b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;gap:18px;align-items:center;padding:12px 20px;background:var(--painel);border-bottom:1px solid var(--linha);flex-wrap:wrap}
+header b{color:var(--ac);letter-spacing:.04em}header a{color:var(--sub);text-decoration:none}header a:hover{color:var(--txt)}
+main{max-width:1200px;margin:0 auto;padding:20px 16px}
+.cartao{background:var(--painel);border:1px solid var(--linha);border-radius:10px;padding:16px;margin-bottom:16px}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.num{font-size:26px;font-weight:600}.sub{color:var(--sub);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--linha);vertical-align:top}
+th{color:var(--sub);font-weight:500}td.v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;padding:1px 7px;border-radius:9px;font-size:11px;background:#262b36;color:var(--sub)}
+.tag.al{background:#3a2e14;color:var(--alerta)}.tag.ok{background:#12302a;color:var(--ok)}.tag.er{background:#3a1816;color:var(--erro)}
+input,select,textarea,button{background:#0f1115;color:var(--txt);border:1px solid var(--linha);border-radius:6px;padding:6px 8px;font:inherit}
+button{background:var(--ac);color:#111;border:0;cursor:pointer;font-weight:600}button.sec{background:#262b36;color:var(--txt)}
+.flash{background:#262b36;border-left:3px solid var(--ac);padding:8px 12px;margin-bottom:12px;border-radius:4px}
+pre{white-space:pre-wrap;font-size:12px;color:var(--sub)}form.inline{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.neg{color:var(--erro)}.pos{color:var(--ok)}
+</style></head><body>
+<header><b>CONTROLADORIA FAMILIAR</b>
+{% if u %}<a href="{{ url_for('painel') }}">Painel</a><a href="{{ url_for('importar') }}">Importar</a>
+<a href="{{ url_for('fila') }}">Fila de aprovação</a><a href="{{ url_for('fila', simulacao=1) }}">Simulações</a>
+<a href="{{ url_for('lancamentos') }}">Lançamentos</a><a href="{{ url_for('cadastros_view') }}">Cadastros</a>
+<a href="{{ url_for('auditoria') }}">Auditoria</a><span class="sub" style="margin-left:auto">{{ u.nome }} · {{ u.papel }}</span>
+<a href="{{ url_for('sair') }}">Sair</a>{% endif %}</header>
+<main>{% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}{% block corpo %}{% endblock %}</main>
+</body></html>

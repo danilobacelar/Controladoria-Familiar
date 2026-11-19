@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block corpo %}
+<h2>{{ 'Simulações (sem efeito)' if sim else 'Fila de aprovação' }}</h2>
+{% set eleg = tarefas|selectattr('elegivel_lote')|list %}
+{% if eleg and u.papel=='APROVADOR' %}<div class="cartao"><form method="post" action="{{ url_for('lote') }}" class="inline">
+<b>Aprovar em lote ({{ eleg|length }} elegíveis)</b>{% for t in eleg %}<label><input type="checkbox" name="ids" value="{{ t.id }}" checked>#{{ t.id }}</label>{% endfor %}
+<input name="motivo" placeholder="motivo (obrigatório)" required><button>Aprovar lote</button></form>
+<p class="sub">DG08, IF09, empresas relacionadas e movimentos de família nunca entram em lote.</p></div>{% endif %}
+{% for t in tarefas %}<div class="cartao">
+<div><b>#{{ t.id }} {{ t.tipo }}</b> {% if t.exige_individual %}<span class="tag er">decisão individual</span>{% endif %}
+{% if t.elegivel_lote %}<span class="tag ok">elegível a lote</span>{% endif %}{% if t.simulacao %}<span class="tag al">simulação</span>{% endif %}</div>
+{% if t.data %}<div class="sub">{{ t.linha_origem }} · {{ t.data }} · {{ t.historico }} · {{ t.contraparte }} · <span class="{{ 'neg' if t.valor<0 else 'pos' }}">{{ '{:,.2f}'.format(t.valor) }}</span></div>{% endif %}
+<p>{{ t.justificativa }}</p>
+{% if u.papel=='APROVADOR' %}<form method="post" action="{{ url_for('decidir', tid=t.id) }}" class="inline">
+<select name="decisao"><option>APROVAR</option><option>REJEITAR</option><option>CONTESTAR</option></select>
+{% if t.alvo_tabela=='lancamentos' %}<input name="evento" placeholder="evento ({{ t.evento_sugerido or '—' }})"><input name="classe" placeholder="classe ({{ t.classe_sugerida or '—' }})">{% endif %}
+{% if t.tipo=='IF09_ATRIBUICAO_ECONOMICA' %}<input name="alocacoes" placeholder="P001=100;P002=0" required><input name="vigencia_inicio" type="date" required>{% endif %}
+{% if t.tipo=='VINCULAR_INSTRUMENTO' %}<input name="instrumento_id" placeholder="A001">{% endif %}
+<input name="motivo" placeholder="motivo (obrigatório)" required style="min-width:240px"><button>Registrar</button></form>
+{% else %}<p class="sub">Somente o aprovador decide.</p>{% endif %}</div>{% else %}<p class="sub">Nenhuma tarefa aberta.</p>{% endfor %}
+{% endblock %}

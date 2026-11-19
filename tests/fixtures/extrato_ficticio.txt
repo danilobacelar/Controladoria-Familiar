@@ -1,0 +1,20 @@
+Extrato de Conta
+Nome: ANA SILVA TESTE
+Agência: 00001 - CIDADE
+Conta: 123456
+Período do extrato: 01/10/2026 até 31/10/2026
+Lançamentos                                                     Saldo Anterior:       R$ 1.000,00
+
+    Data     Documento     Histórico            Descrição                 Débito          Crédito           Saldo
+ 01/10/2026 111            Débito Pix           CARLA SOUZA TESTE       R$ 100,00                        R$ 900,00
+ 02/10/2026 222            Pagamento Pix        ACADEMIA FICTICIA        R$ 50,00                        R$ 850,00
+ 03/10/2026 333            Crédito Pix          ANA SILVA TESTE                       R$ 20.000,00    R$ 20.850,00
+ 04/10/2026 444            Fat cartão Alfa      10/2026               R$ 5.000,00                     R$ 15.850,00
+ 05/10/2026 555            Débito Pix           BRUNO LIMA TESTE     R$ 12.000,00                      R$ 3.850,00
+ 06/10/2026 666            Crédito Pix          OMEGA PARTICIPACOES                    R$ 700,00       R$ 4.550,00
+ 07/10/2026 777            Crédito Pix          FULANO DE TAL                          R$ 300,00       R$ 4.850,00
+ 08/10/2026 888            Pagamento Pix        LOJA XYZ                 R$ 40,00                      R$ 4.810,00
+
+Posição em 31/10/2026
+ Saldo:                                              R$ 4.810,00
+ Limite de Crédito (Chq Especial):                   R$ 1.000,00

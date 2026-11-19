@@ -1,0 +1,6 @@
+pessoa_id,nome,papel,origem,observacoes
+P001,Ana,titular,SIMULACAO,aprovadora ficticia
+P002,Bruno,conjuge,SIMULACAO,dados restritos
+P003,Carla,filha,SIMULACAO,menor
+P004,Edu,terceiro_cotitular,SIMULACAO,fora do nucleo
+P005,Gabi,terceira,SIMULACAO,referencia declaratoria

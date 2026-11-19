@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block corpo %}<div class="cartao" style="max-width:380px;margin:60px auto">
+<h2>Entrar</h2><form method="post" style="display:grid;gap:10px">
+<select name="uid">{% for x in usuarios %}<option value="{{ x.id }}">{{ x.nome }} ({{ x.papel }})</option>{% endfor %}</select>
+<input name="pin" type="password" placeholder="PIN do aprovador"><button>Entrar</button></form>
+<p class="sub">Agente e administração técnica não acessam a interface de decisão.</p></div>{% endblock %}

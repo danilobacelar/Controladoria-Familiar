@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block corpo %}<div class="cartao"><h2>Importar extrato (PDF)</h2>
+<form method="post" enctype="multipart/form-data" style="display:grid;gap:10px;max-width:520px">
+<input type="file" name="arquivo" accept="application/pdf" required>
+<select name="instrumento_id"><option value="">Instrumento: vincular depois</option>
+{% for i in instrumentos %}<option value="{{ i.id }}">{{ i.id }} · {{ i.instituicao }} · {{ i.tipo }}</option>{% endfor %}</select>
+<label><input type="checkbox" name="simulacao" value="1"> Simulação (nunca produz efeito)</label>
+<button>Gerar proposta</button></form>
+<p class="sub">A leitura gera apenas PROPOSTA. Falha de conferência de saldo coloca o lote em quarentena sem lançar nada.</p></div>{% endblock %}
