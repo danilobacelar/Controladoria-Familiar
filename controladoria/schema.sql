@@ -8,7 +8,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
   id TEXT PRIMARY KEY,
   nome TEXT NOT NULL,
   -- APROVADOR: único papel que decide. AGENTE e ADMIN_TECNICO nunca aprovam (F05 segregação).
-  papel TEXT NOT NULL CHECK (papel IN ('APROVADOR','OPERADOR','AGENTE','ADMIN_TECNICO'))
+  papel TEXT NOT NULL CHECK (papel IN ('APROVADOR','OPERADOR','AGENTE','ADMIN_TECNICO')),
+  senha_hash TEXT,                       -- sem senha definida, o usuário não entra
+  falhas_login INTEGER NOT NULL DEFAULT 0,
+  bloqueado_ate TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS fontes_documentais (

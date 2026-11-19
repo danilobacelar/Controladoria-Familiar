@@ -165,7 +165,7 @@ def test_entrada_desconhecida_exige_decisao_explicita(con):
         servicos.decidir(con, t["id"], "danilo", "APROVAR", "ok")
     assert con.execute("SELECT estado FROM tarefas_aprovacao WHERE id=?", (t["id"],)).fetchone()[0] == "ABERTA"
     assert con.execute("SELECT count(*) FROM decisoes").fetchone()[0] == 0   # rollback total
-    servicos.decidir(con, t["id"], "danilo", "APROVAR", "reembolso de despesa", {"evento": "CREDITO_REEMBOLSO"})
+    servicos.decidir(con, t["id"], "danilo", "APROVAR", "reembolso de despesa", {"evento": "BAIXA_REEMBOLSO"})
     assert lanc_por_tarefa(con, t)["efeito_economico"] == "NENHUM"
 
 

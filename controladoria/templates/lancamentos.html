@@ -3,5 +3,5 @@
 {% for l in lancs %}<tr><td>{{ l.data }}</td><td>{{ l.historico }}</td><td>{{ l.contraparte }}</td><td class="v {{ 'neg' if l.valor<0 else 'pos' }}">{{ '{:,.2f}'.format(l.valor) }}</td>
 <td>{{ l.evento or l.classe or ('sug.: ' ~ (l.evento_sugerido or l.classe_sugerida or '—')) }}</td><td>{{ l.efeito_economico }}</td>
 <td><span class="tag {{ 'ok' if l.estado_aprovacao=='APROVADO' else '' }}">{{ l.estado_aprovacao }}</span>{% if l.simulacao %} <span class="tag al">sim</span>{% endif %}</td>
-<td>{% if l.estado_aprovacao=='APROVADO' and u.papel=='APROVADOR' %}<form method="post" action="{{ url_for('reabrir', lid=l.id) }}" class="inline"><input name="motivo" placeholder="motivo" required><button class="sec">Reabrir</button></form>{% endif %}</td></tr>{% endfor %}
+<td>{% if l.estado_aprovacao=='APROVADO' and u.papel=='APROVADOR' %}<form method="post" action="{{ url_for('reabrir', lid=l.id) }}" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input name="motivo" placeholder="motivo" required><button class="sec">Reabrir</button></form>{% endif %}</td></tr>{% endfor %}
 </table></div>{% endblock %}

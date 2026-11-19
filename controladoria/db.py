@@ -17,7 +17,17 @@ def conectar(caminho: str | Path) -> sqlite3.Connection:
 
 def inicializar(con: sqlite3.Connection) -> None:
     con.executescript(SCHEMA.read_text(encoding="utf-8"))
+    _migrar(con)
     con.commit()
+
+
+def _migrar(con: sqlite3.Connection) -> None:
+    """Acrescenta colunas novas em bancos criados por versões anteriores."""
+    cols = {r[1] for r in con.execute("PRAGMA table_info(usuarios)")}
+    for nome, tipo in (("senha_hash", "TEXT"), ("falhas_login", "INTEGER NOT NULL DEFAULT 0"),
+                       ("bloqueado_ate", "TIMESTAMP")):
+        if nome not in cols:
+            con.execute(f"ALTER TABLE usuarios ADD COLUMN {nome} {tipo}")
 
 
 def auditar(con, ator_id, acao, tabela, registro_id, antes=None, depois=None, motivo=None):

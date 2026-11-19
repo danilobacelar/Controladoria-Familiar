@@ -34,9 +34,12 @@ def _num(v):
 
 
 def garantir_usuarios(con, aprovador_nome="Danilo"):
-    con.execute("INSERT OR IGNORE INTO usuarios VALUES ('danilo', ?, 'APROVADOR')", (aprovador_nome,))
-    con.execute("INSERT OR IGNORE INTO usuarios VALUES ('claude', 'Agente Claude', 'AGENTE')")
-    con.execute("INSERT OR IGNORE INTO usuarios VALUES ('admin', 'Administração técnica', 'ADMIN_TECNICO')")
+    """Cria os usuários-base SEM senha: ninguém entra na interface até ter senha própria definida."""
+    sql = "INSERT OR IGNORE INTO usuarios (id, nome, papel) VALUES (?,?,?)"
+    con.execute(sql, ("danilo", aprovador_nome, "APROVADOR"))
+    con.execute(sql, ("operador", "Operador", "OPERADOR"))
+    con.execute(sql, ("claude", "Agente Claude", "AGENTE"))
+    con.execute(sql, ("admin", "Administração técnica", "ADMIN_TECNICO"))
 
 
 def _tarefa(con, tipo, tabela, alvo, justificativa, individual):

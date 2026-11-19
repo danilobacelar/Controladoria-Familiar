@@ -20,15 +20,19 @@ echo "Instalando dependências (pode levar 1-2 minutos na primeira vez)..."
 
 export CONTROLADORIA_DADOS="$PWD/dados/demo"
 export CONTROLADORIA_DB="$CONTROLADORIA_DADOS/controladoria.db"
-export CONTROLADORIA_PIN="${CONTROLADORIA_PIN:-1234}"
 mkdir -p "$CONTROLADORIA_DADOS"
 
 echo "Carregando cadastros fictícios..."
 .venv/bin/python -m controladoria.cli carregar tests/fixtures/cadastros > /dev/null
+# Senhas SOMENTE da demonstração (dados fictícios). Para uso real, defina senhas próprias com
+#   .venv/bin/python -m controladoria.cli definir-senha danilo
+echo "demo-aprovador" | .venv/bin/python -m controladoria.cli definir-senha danilo --stdin > /dev/null
+echo "demo-operador" | .venv/bin/python -m controladoria.cli definir-senha operador --stdin > /dev/null
 
 echo ""
 echo "Sistema no ar: http://127.0.0.1:8765"
-echo "Entrar como: Danilo (APROVADOR)   PIN: $CONTROLADORIA_PIN"
+echo "Aprovador:  usuário danilo    senha demo-aprovador"
+echo "Operador:   usuário operador  senha demo-operador"
 echo "Arquivo de teste: tests/fixtures/extrato_ficticio.pdf"
 echo "Banco da demonstração: $CONTROLADORIA_DB"
 echo "Para encerrar: Control + C"

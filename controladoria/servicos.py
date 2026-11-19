@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -120,19 +121,40 @@ def _exigir_aprovador(con, ator_id):
         raise Recusado("somente o APROVADOR decide; agente e administração técnica não aprovam")
 
 
-EFEITO_EVENTO = {"PAGAMENTO_FATURA": "NENHUM", "TRANSFERENCIA_INTERNA": "NENHUM", "APORTE_DOMESTICO": "NENHUM",
-                 "CREDITO_REEMBOLSO": "NENHUM", "BAIXA_REEMBOLSO": "NENHUM", "APLICACAO_PRINCIPAL": "NENHUM",
-                 "RESGATE_PRINCIPAL": "NENHUM", "DESPESA_TERCEIRO": "NENHUM"}
+# Catálogo de trabalho dos eventos não econômicos (03_EVENTOS_E_CLASSIFICACOES).
+# Só eventos de movimentação de caixa sem resultado podem ser aprovados como neutros a partir de um extrato.
+# Os demais dependem de vínculo/documento em módulos ainda não implementados e ficam em revisão.
+EVENTOS_NEUTROS = {"TRANSFERENCIA_INTERNA", "APORTE_DOMESTICO", "PAGAMENTO_FATURA", "APLICACAO_PRINCIPAL",
+                   "RESGATE_PRINCIPAL", "BAIXA_REEMBOLSO"}
+EVENTOS_EXIGEM_VINCULO = {"COMPRA_CARTAO", "PARCELA_CARTAO", "FECHAMENTO_FATURA", "DESPESA_TERCEIRO",
+                          "CREDITO_REEMBOLSO", "CONSTITUICAO_MUTUO", "AMORTIZACAO_PRINCIPAL", "QUITACAO_DIVIDA",
+                          "AQUISICAO_ATIVO", "ALIENACAO_ATIVO", "REAVALIACAO_NAO_REALIZADA", "AJUSTE_ABERTURA",
+                          "REFERENCIA_DECLARATORIA_SEM_EFEITO"}
+CLASSES_VALIDAS = {f"01.{i:02d}" for i in range(1, 9)} | {f"02.{i:02d}" for i in range(1, 20)}
+
+
+def _codigo_classe(classe):
+    m = re.match(r"\s*(0[12]\.\d{2})\b", classe or "")
+    return m.group(1) if m else None
 
 
 def _efeito(evento, classe):
+    """Efeito econômico de uma aprovação. Nada desconhecido é tratado como neutro: recusa e mantém em revisão."""
+    if evento and classe:
+        raise Recusado("informe evento OU classe, não ambos")
     if evento:
-        return EFEITO_EVENTO.get(evento, "NENHUM")
-    if classe and classe.startswith("01"):
-        return "RECEITA"
-    if classe and classe.startswith("02"):
-        return "DESPESA"
-    return "INDEFINIDO"
+        if evento in EVENTOS_NEUTROS:
+            return "NENHUM"
+        if evento in EVENTOS_EXIGEM_VINCULO:
+            raise Recusado(f"evento {evento} exige vínculo com documento ou módulo ainda não implementado; "
+                           "a tarefa continua em revisão")
+        raise Recusado(f"evento {evento} fora do catálogo: exige revisão e não é considerado neutro")
+    if classe:
+        codigo = _codigo_classe(classe)
+        if codigo not in CLASSES_VALIDAS:
+            raise Recusado(f"classe '{classe}' fora do catálogo 01/02: exige revisão")
+        return "RECEITA" if codigo.startswith("01") else "DESPESA"
+    raise Recusado("informe evento ou classe para aprovar este lançamento")
 
 
 def decidir(con, tarefa_id, ator_id, decisao, motivo, dados=None):
@@ -205,8 +227,8 @@ def _aplicar(con, t, ator_id, motivo, dados, decisao_id):
         l = linha(con, "SELECT * FROM lancamentos WHERE id=?", alvo)
         evento = dados.get("evento", l["evento_sugerido"])
         classe = dados.get("classe", l["classe_sugerida"])
-        if not evento and not classe:
-            raise Recusado("informe evento ou classe para aprovar este lançamento")
+        if "evento" in dados or "classe" in dados:      # escolha explícita substitui toda a sugestão
+            evento, classe = dados.get("evento") or None, dados.get("classe") or None
         efeito = _efeito(evento, classe)
         if efeito == "RECEITA" and l["valor"] <= 0:
             raise Recusado("receita exige entrada positiva")
